@@ -194,8 +194,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         LanguageUtils.loadGeyserLocale(session.getLocale());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getRemoteAuthType() == AuthType.ONLINE) {
-            // TODO it is safer to key authentication on something that won't change (UUID, not username)
-            if (!couldLoginUserByName(session.getAuthData().getName())) {
+            if(!session.isPremiumSelected()){
+                LoginEncryptionUtils.showPremiumSelectWindow(session);
+            } else if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in

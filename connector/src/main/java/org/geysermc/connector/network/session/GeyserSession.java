@@ -135,6 +135,7 @@ public class GeyserSession implements CommandSender {
     @Deprecated
     @Setter
     private boolean microsoftAccount;
+    private boolean premiumSelected;
 
     private final SessionPlayerEntity playerEntity;
 
@@ -470,6 +471,7 @@ public class GeyserSession implements CommandSender {
 
         this.spawned = false;
         this.loggedIn = false;
+        this.premiumSelected = false;
 
         if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
@@ -1260,6 +1262,9 @@ public class GeyserSession implements CommandSender {
      */
     public Boolean hasPermission(String permission) {
         return connector.getWorldManager().hasPermission(this, permission);
+    }
+    public Boolean isPremiumSelected(){
+        return premiumSelected;
     }
 
     /**

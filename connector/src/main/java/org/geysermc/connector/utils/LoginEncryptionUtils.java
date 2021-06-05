@@ -196,6 +196,16 @@ public class LoginEncryptionUtils {
         session.sendForm(window, AUTH_FORM_ID);
     }
 
+    public static void showPremiumSelectWindow(GeyserSession session) {
+        String userLanguage = session.getLocale();
+        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.desc", userLanguage));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.premium", userLanguage)));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.nopremium", userLanguage)));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.btn_disconnect", userLanguage)));
+
+        session.sendForm(window, AUTH_FORM_ID);
+    }
+
     public static void showLoginDetailsWindow(GeyserSession session) {
         String userLanguage = session.getLocale();
         CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.title", userLanguage))
