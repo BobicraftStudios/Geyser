@@ -180,6 +180,8 @@ public class LoginEncryptionUtils {
     private static final int AUTH_MSA_CODE_FORM_ID = 1335;
     private static final int AUTH_FORM_ID = 1336;
     private static final int AUTH_DETAILS_FORM_ID = 1337;
+    private static final int AUTH_PREMIUM_SELECT = 1344;
+    private static final int AUTH_NOPREMIUM_FORM_ID = 1345;
 
     public static void showLoginWindow(GeyserSession session) {
         // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
@@ -198,12 +200,23 @@ public class LoginEncryptionUtils {
 
     public static void showPremiumSelectWindow(GeyserSession session) {
         String userLanguage = session.getLocale();
-        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.desc", userLanguage));
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.premium", userLanguage)));
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.nopremium", userLanguage)));
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.select.form.notice.btn_disconnect", userLanguage)));
+        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.select.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.select.form.notice.desc", userLanguage));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.select.form.premium", userLanguage)));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.select.form.nopremium", userLanguage)));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.select.form.notice.btn_disconnect", userLanguage)));
 
-        session.sendForm(window, AUTH_FORM_ID);
+        session.sendForm(window, AUTH_PREMIUM_SELECT);
+    }
+
+    public static void showNoPremiumSelectWindow(GeyserSession session){
+        String userLanguage = session.getLocale();
+        CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.form.details.title", userLanguage))
+                .addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.form.details.desc", userLanguage)))
+                .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("bobicraft.auth.login.form.details.email", userLanguage), "", ""))
+                .build();
+
+        session.sendForm(window, AUTH_NOPREMIUM_FORM_ID);
+
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
@@ -240,10 +253,11 @@ public class LoginEncryptionUtils {
 
     public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, int formId, String formData) {
         WindowCache windowCache = session.getWindowCache();
+        connector.getLogger().debug(formId+"");
         if (!windowCache.getWindows().containsKey(formId))
             return false;
 
-        if (formId == AUTH_MSA_DETAILS_FORM_ID || formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID || formId == AUTH_MSA_CODE_FORM_ID) {
+        if (formId == AUTH_MSA_DETAILS_FORM_ID || formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID || formId == AUTH_MSA_CODE_FORM_ID || formId == AUTH_PREMIUM_SELECT || formId==AUTH_NOPREMIUM_FORM_ID) {
             FormWindow window = windowCache.getWindows().remove(formId);
             window.setResponse(formData.trim());
 
@@ -263,7 +277,36 @@ public class LoginEncryptionUtils {
                     } else {
                         showLoginDetailsWindow(session);
                     }
-                } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
+                } else if(formId == AUTH_PREMIUM_SELECT && window instanceof SimpleFormWindow){
+                    SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
+                    if(response != null){
+                        if(response.getClickedButtonId() == 0){
+                            session.setPremiumSelected(true);
+                            showLoginWindow(session);
+                        } else if(response.getClickedButtonId() == 1) {
+                            showNoPremiumSelectWindow(session);
+                        }else if (response.getClickedButtonId() == 2) {
+                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                        }
+                    } else {
+                        showPremiumSelectWindow(session);
+                    }
+                } else if(formId == AUTH_NOPREMIUM_FORM_ID && window instanceof CustomFormWindow){
+                    CustomFormWindow customFormWindow = (CustomFormWindow) window;
+
+                    CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
+
+                    if (response != null) {
+                        String email = response.getInputResponses().get(1);
+
+                        session.authenticate(email, null);
+
+                        // Clear windows so authentication data isn't accidentally cached
+                        windowCache.getWindows().clear();
+                    } else {
+                        showNoPremiumSelectWindow(session);
+                    }
+                }else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     boolean isPasswordAuthentication = session.getConnector().getConfig().getRemote().isPasswordAuthentication();
                     int microsoftButton = isPasswordAuthentication ? 1 : 0;
                     int disconnectButton = isPasswordAuthentication ? 2 : 1;

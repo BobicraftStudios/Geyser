@@ -1267,6 +1267,10 @@ public class GeyserSession implements CommandSender {
         return premiumSelected;
     }
 
+    public void setPremiumSelected(boolean premiumSelected){
+        this.premiumSelected = premiumSelected;
+    }
+
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
